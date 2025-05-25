@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Carte interactive des membres</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
+
+  <style>
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script>
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSai1Y7CSD2dkKlRCh5Y1RtiATF06L5gUgfwgYEIdOiQwGLGr96HeZqfP57zvzyCzU08aOF0J4GiqlP/pub?gid=1773572133&single=true&output=csv";
+
+    const iconUrls = {
+      "actif": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png",
+      "past": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
+      "staff": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png",
+      "franchisé": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      "default": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
+    };
+
+    function getIcon(statut) {
+      const iconUrl = iconUrls[statut.toLowerCase()] || iconUrls["default"];
+      return L.icon({
+        iconUrl: iconUrl,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowSize: [41, 41]
+      });
+    }
+
+    const map = L.map('map').setView([46.6, 2.4], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    function createMarker(lat, lon, name, statut) {
+      const marker = L.marker([lat, lon], {
+        icon: getIcon(statut)
+      }).addTo(map);
+      marker.bindPopup(`<b>${name}</b><br/>Statut : ${statut}`);
+    }
+
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        results.data.forEach(row => {
+          if (row.latitude && row.longitude) {
+            createMarker(
+              parseFloat(row.latitude),
+              parseFloat(row.longitude),
+              row.name,
+              row.statut
+            );
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>
