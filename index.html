@@ -50,7 +50,7 @@
 <body>
 
   <div id="search-bar">
-    <input type="text" id="search-input" placeholder="🔍 Entrer une ville pour zoomer">
+    <input type="text" id="search-input" placeholder="🔍 Ex: Bonneville 74">
     <button id="search-btn">Rechercher</button>
     <button id="reset-btn">Réinitialiser</button>
   </div>
@@ -107,8 +107,8 @@
       });
     }
 
-    function geocodeCity(city) {
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`;
+    function geocodeCity(query) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ", France")}`;
       fetch(url)
         .then(response => response.json())
         .then(data => {
@@ -137,9 +137,9 @@
         const resetBtn = document.getElementById("reset-btn");
 
         searchBtn.addEventListener("click", function () {
-          const city = searchInput.value.trim();
-          if (city) {
-            geocodeCity(city);
+          const query = searchInput.value.trim();
+          if (query) {
+            geocodeCity(query);
           }
         });
 
