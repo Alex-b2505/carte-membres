@@ -6,11 +6,8 @@
   <title>Carte des Membres</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <!-- PapaParse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 
   <style>
@@ -89,10 +86,6 @@
 
     let allMarkers = [];
 
-    function normalize(text) {
-      return text ? text.toString().toLowerCase().trim() : "";
-    }
-
     function displayMarkers(data) {
       allMarkers.forEach(marker => map.removeLayer(marker));
       allMarkers = [];
@@ -101,18 +94,36 @@
         const lat = parseFloat(row.latitude);
         const lon = parseFloat(row.longitude);
         const name = row.name || "";
-        const ville = row.ville || row.Ville || row["VILLE"] || "";
-        const cp = row["code postal"] || row["Code postal"] || "";
+        const ville = row.ville || "";
+        const cp = row["code postal"] || "";
         const statut = row.statut || "";
 
         if (!isNaN(lat) && !isNaN(lon)) {
           const marker = L.marker([lat, lon], { icon: getIcon(statut) });
           marker.bindPopup(`<b>${name}</b><br>${ville} ${cp}<br>${statut}`);
-          marker._data = { ville: normalize(ville), coords: [lat, lon] };
           marker.addTo(map);
           allMarkers.push(marker);
         }
       });
+    }
+
+    function geocodeCity(city) {
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`;
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            const lat = parseFloat(data[0].lat);
+            const lon = parseFloat(data[0].lon);
+            map.setView([lat, lon], 12);
+          } else {
+            alert("Ville introuvable.");
+          }
+        })
+        .catch(error => {
+          alert("Erreur lors de la recherche.");
+          console.error(error);
+        });
     }
 
     Papa.parse(csvUrl, {
@@ -126,16 +137,9 @@
         const resetBtn = document.getElementById("reset-btn");
 
         searchBtn.addEventListener("click", function () {
-          const query = normalize(searchInput.value);
-          const matchedCoords = allMarkers
-            .filter(marker => marker._data.ville.includes(query))
-            .map(marker => marker._data.coords);
-
-          if (matchedCoords.length > 0) {
-            const bounds = L.latLngBounds(matchedCoords);
-            map.fitBounds(bounds.pad(0.2));
-          } else {
-            alert("Aucun membre trouvé pour cette ville.");
+          const city = searchInput.value.trim();
+          if (city) {
+            geocodeCity(city);
           }
         });
 
