@@ -6,11 +6,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <!-- Tabletop JS -->
-  <script src="https://cdn.jsdelivr.net/npm/tabletop@1.5.1/tabletop.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- PapaParse -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 
   <style>
     #map {
@@ -23,23 +24,28 @@
   <div id="map"></div>
 
   <script>
-    const publicSpreadsheetUrl = 'https://docs.google.com/spreadsheets/d/1l29yyHXvIXgP4aHJ6CtCgBAEyXVORJ4v5HyXq3RxOHc/pubhtml';
+    const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSai1Y7CSD2dkKlRCh5Y1RtiATF06L5gUgfwgYEIdOiQwGLGr96HeZqfP57zvzyCzU08aOF0J4GiqlP/pub?gid=1773572133&single=true&output=csv";
 
     function getColor(statut) {
       switch (statut.toLowerCase()) {
-        case 'actif': return 'gold';
-        case 'past': return 'orange';
-        case 'staff': return 'black';
-        case 'franchisé': return 'red';
-        default: return 'blue';
+        case "actif": return "gold";
+        case "past": return "orange";
+        case "staff": return "black";
+        case "franchisé": return "red";
+        default: return "blue";
       }
     }
+
+    const map = L.map('map').setView([46.6, 2.4], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
 
     function createMarker(lat, lon, name, statut) {
       const marker = L.circleMarker([lat, lon], {
         radius: 10,
         fillColor: getColor(statut),
-        color: '#000',
+        color: "#000",
         weight: 1,
         opacity: 1,
         fillOpacity: 0.9
@@ -47,22 +53,21 @@
       marker.bindPopup(`<b>${name}</b><br/>Statut : ${statut}`);
     }
 
-    const map = L.map('map').setView([46.6, 2.4], 6);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    Tabletop.init({
-      key: publicSpreadsheetUrl,
-      callback: function(data) {
-        data.forEach(row => {
+    Papa.parse(csvUrl, {
+      download: true,
+      header: true,
+      complete: function(results) {
+        results.data.forEach(row => {
           if (row.latitude && row.longitude) {
-            createMarker(parseFloat(row.latitude), parseFloat(row.longitude), row.name, row.statut);
+            createMarker(
+              parseFloat(row.latitude),
+              parseFloat(row.longitude),
+              row.name,
+              row.statut
+            );
           }
         });
-      },
-      simpleSheet: true
+      }
     });
   </script>
 </body>
