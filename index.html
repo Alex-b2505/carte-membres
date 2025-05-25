@@ -1,22 +1,61 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Carte interactive des membres</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <title>Carte des Membres</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- PapaParse for CSV parsing -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 
   <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: Arial, sans-serif;
+    }
+    #search-bar {
+      padding: 10px;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+    }
+    #search-input {
+      flex: 1;
+      padding: 8px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #reset-btn {
+      padding: 8px 12px;
+      font-size: 14px;
+      background: #eee;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      cursor: pointer;
+    }
     #map {
-      height: 100vh;
+      height: calc(100vh - 60px);
       width: 100%;
     }
   </style>
 </head>
 <body>
+
+  <div id="search-bar">
+    <input type="text" id="search-input" placeholder="🔍 Rechercher un membre, une ville, un statut...">
+    <button id="reset-btn">Réinitialiser</button>
+  </div>
   <div id="map"></div>
 
   <script>
@@ -31,12 +70,12 @@
     };
 
     function getIcon(statut) {
-      const iconUrl = iconUrls[statut.toLowerCase()] || iconUrls["default"];
+      const key = statut ? statut.toLowerCase() : "default";
       return L.icon({
-        iconUrl: iconUrl,
+        iconUrl: iconUrls[key] || iconUrls["default"],
         iconSize: [25, 41],
         iconAnchor: [12, 41],
-        popupAnchor: [0, -32],
+        popupAnchor: [0, -30],
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
         shadowSize: [41, 41]
       });
@@ -44,40 +83,58 @@
 
     const map = L.map('map').setView([46.6, 2.4], 6);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+      attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    function createMarker(lat, lon, name, statut) {
-      const marker = L.marker([lat, lon], {
-        icon: getIcon(statut)
-      }).addTo(map);
-      marker.bindPopup(`<b>${name}</b><br/>Statut : ${statut}`);
+    let allMarkers = [];
+
+    function displayMarkers(data) {
+      allMarkers.forEach(marker => map.removeLayer(marker));
+      allMarkers = [];
+
+      data.forEach(row => {
+        const lat = parseFloat(row.latitude);
+        const lon = parseFloat(row.longitude);
+        const name = row.name || "";
+        const ville = row.ville || "";
+        const cp = row["code postal"] || "";
+        const statut = row.statut || "";
+
+        if (!isNaN(lat) && !isNaN(lon)) {
+          const marker = L.marker([lat, lon], { icon: getIcon(statut) });
+          marker.bindPopup(`<b>${name}</b><br>${ville} ${cp}<br>${statut}`);
+          marker._data = row;
+          marker.addTo(map);
+          allMarkers.push(marker);
+        }
+      });
     }
 
     Papa.parse(csvUrl, {
       download: true,
       header: true,
       complete: function(results) {
-        results.data.forEach(row => {
-          if (row.latitude && row.longitude) {
-            createMarker(
-              parseFloat(row.latitude),
-              parseFloat(row.longitude),
-              row.name,
-              row.statut
-            );
-          }
+        displayMarkers(results.data);
+
+        const searchInput = document.getElementById("search-input");
+        const resetBtn = document.getElementById("reset-btn");
+
+        searchInput.addEventListener("input", function () {
+          const query = this.value.toLowerCase();
+          const filtered = results.data.filter(row =>
+            Object.values(row).some(value =>
+              value && value.toString().toLowerCase().includes(query)
+            )
+          );
+          displayMarkers(filtered);
+        });
+
+        resetBtn.addEventListener("click", function () {
+          searchInput.value = "";
+          displayMarkers(results.data);
         });
       }
     });
   </script>
-
-  <div id="legend" style="position: absolute; bottom: 20px; right: 20px; background: white; padding: 10px; border-radius: 8px; font-family: sans-serif; box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index:1000;">
-    <b>Légende :</b><br>
-    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png" width="20"> Membre Actif<br>
-    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png" width="20"> Ancien membre<br>
-    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png" width="20"> Staff<br>
-    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" width="20"> Franchisé
-  </div>
 </body>
 </html>
