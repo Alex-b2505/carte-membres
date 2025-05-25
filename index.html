@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
   <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
 
@@ -26,14 +25,24 @@
   <script>
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSai1Y7CSD2dkKlRCh5Y1RtiATF06L5gUgfwgYEIdOiQwGLGr96HeZqfP57zvzyCzU08aOF0J4GiqlP/pub?gid=1773572133&single=true&output=csv";
 
-    function getColor(statut) {
-      switch (statut.toLowerCase()) {
-        case "actif": return "gold";
-        case "past": return "orange";
-        case "staff": return "black";
-        case "franchisé": return "red";
-        default: return "blue";
-      }
+    const iconUrls = {
+      "actif": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png",
+      "past": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
+      "staff": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png",
+      "franchisé": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      "default": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
+    };
+
+    function getIcon(statut) {
+      const iconUrl = iconUrls[statut.toLowerCase()] || iconUrls["default"];
+      return L.icon({
+        iconUrl: iconUrl,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+        shadowSize: [41, 41]
+      });
     }
 
     const map = L.map('map').setView([46.6, 2.4], 6);
@@ -42,13 +51,8 @@
     }).addTo(map);
 
     function createMarker(lat, lon, name, statut) {
-      const marker = L.circleMarker([lat, lon], {
-        radius: 10,
-        fillColor: getColor(statut),
-        color: "#000",
-        weight: 1,
-        opacity: 1,
-        fillOpacity: 0.9
+      const marker = L.marker([lat, lon], {
+        icon: getIcon(statut)
       }).addTo(map);
       marker.bindPopup(`<b>${name}</b><br/>Statut : ${statut}`);
     }
@@ -70,5 +74,14 @@
       }
     });
   </script>
+
+  <div id="legend" style="position: absolute; bottom: 20px; right: 20px; background: white; padding: 10px; border-radius: 8px; font-family: sans-serif; box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index:1000;">
+    <b>Légende :</b><br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png" width="20"> Actif<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png" width="20"> Past<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png" width="20"> Staff<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" width="20"> Franchisé
+  </div>
 </body>
+
 </html>
