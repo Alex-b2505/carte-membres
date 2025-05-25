@@ -53,7 +53,7 @@
 <body>
 
   <div id="search-bar">
-    <input type="text" id="search-input" placeholder="🔍 Rechercher un membre, une ville, un statut...">
+    <input type="text" id="search-input" placeholder="🔍 Entrer une ville pour zoomer">
     <button id="reset-btn">Réinitialiser</button>
   </div>
   <div id="map"></div>
@@ -104,6 +104,7 @@
           const marker = L.marker([lat, lon], { icon: getIcon(statut) });
           marker.bindPopup(`<b>${name}</b><br>${ville} ${cp}<br>${statut}`);
           marker._data = row;
+          marker._coords = [lat, lon];
           marker.addTo(map);
           allMarkers.push(marker);
         }
@@ -121,17 +122,22 @@
 
         searchInput.addEventListener("input", function () {
           const query = this.value.toLowerCase();
-          const filtered = results.data.filter(row =>
-            Object.values(row).some(value =>
-              value && value.toString().toLowerCase().includes(query)
+          const matchedCoords = allMarkers
+            .filter(marker =>
+              marker._data.ville &&
+              marker._data.ville.toLowerCase().includes(query)
             )
-          );
-          displayMarkers(filtered);
+            .map(marker => marker._coords);
+
+          if (matchedCoords.length > 0) {
+            const bounds = L.latLngBounds(matchedCoords);
+            map.fitBounds(bounds.pad(0.2));
+          }
         });
 
         resetBtn.addEventListener("click", function () {
           searchInput.value = "";
-          displayMarkers(results.data);
+          map.setView([46.6, 2.4], 6);
         });
       }
     });
