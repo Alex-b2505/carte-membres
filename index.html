@@ -23,19 +23,19 @@
     const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSai1Y7CSD2dkKlRCh5Y1RtiATF06L5gUgfwgYEIdOiQwGLGr96HeZqfP57zvzyCzU08aOF0J4GiqlP/pub?gid=1773572133&single=true&output=csv";
 
     const iconUrls = {
-      "actif": "https://cdn-icons-png.flaticon.com/32/149/149059.png",
-      "past": "https://cdn-icons-png.flaticon.com/32/149/149059.png",
-      "staff": "https://cdn-icons-png.flaticon.com/32/149/149059.png",
-      "franchisé": "https://cdn-icons-png.flaticon.com/32/149/149059.png",
-      "default": "https://cdn-icons-png.flaticon.com/32/149/149059.png"
+      "actif": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png",
+      "past": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png",
+      "staff": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png",
+      "franchisé": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+      "default": "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
     };
 
     function getIcon(statut) {
       const iconUrl = iconUrls[statut.toLowerCase()] || iconUrls["default"];
       return L.icon({
         iconUrl: iconUrl,
-        iconSize: [20, 32],
-        iconAnchor: [10, 32],
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
         popupAnchor: [0, -32],
         shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
         shadowSize: [41, 41]
@@ -74,10 +74,10 @@
 
   <div id="legend" style="position: absolute; bottom: 20px; right: 20px; background: white; padding: 10px; border-radius: 8px; font-family: sans-serif; box-shadow: 0 0 8px rgba(0,0,0,0.3); z-index:1000;">
     <b>Légende :</b><br>
-    <img src="https://cdn-icons-png.flaticon.com/32/149/149059.png" width="20"> Membre Actif<br>
-    <img src="https://cdn-icons-png.flaticon.com/32/149/149059.png" width="20"> Ancien membre<br>
-    <img src="https://cdn-icons-png.flaticon.com/32/149/149059.png" width="20"> Staff<br>
-    <img src="https://cdn-icons-png.flaticon.com/32/149/149059.png" width="20"> Franchisé
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png" width="20"> Membre Actif<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png" width="20"> Ancien membre<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-black.png" width="20"> Staff<br>
+    <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" width="20"> Franchisé
   </div>
 </body>
 </html>
