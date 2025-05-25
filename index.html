@@ -36,7 +36,7 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    #reset-btn {
+    #search-btn, #reset-btn {
       padding: 8px 12px;
       font-size: 14px;
       background: #eee;
@@ -54,6 +54,7 @@
 
   <div id="search-bar">
     <input type="text" id="search-input" placeholder="🔍 Entrer une ville pour zoomer">
+    <button id="search-btn">Rechercher</button>
     <button id="reset-btn">Réinitialiser</button>
   </div>
   <div id="map"></div>
@@ -118,10 +119,11 @@
         displayMarkers(results.data);
 
         const searchInput = document.getElementById("search-input");
+        const searchBtn = document.getElementById("search-btn");
         const resetBtn = document.getElementById("reset-btn");
 
-        searchInput.addEventListener("input", function () {
-          const query = this.value.toLowerCase();
+        searchBtn.addEventListener("click", function () {
+          const query = searchInput.value.toLowerCase().trim();
           const matchedCoords = allMarkers
             .filter(marker =>
               marker._data.ville &&
